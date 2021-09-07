@@ -129,6 +129,24 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [{
+          equity: "0.1",
+          id: expect.any(Number),
+          salary: 1,
+          title: "J1"
+        },
+        {
+          equity: "0.2",
+          id: expect.any(Number),
+          salary: 2,
+          title: "J2"
+        },
+        {
+          equity: null,
+          id: expect.any(Number),
+          salary: 3,
+          title: "J3"
+        }]
       },
     });
   });
@@ -142,6 +160,7 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: []
       },
     });
   });
@@ -155,7 +174,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
         .patch(`/companies/c1`)
         .send({
@@ -216,7 +235,7 @@ describe("PATCH /companies/:handle", function () {
 /************************************** DELETE /companies/:handle */
 
 describe("DELETE /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
         .delete(`/companies/c1`)
         .set("authorization", `Bearer ${adminToken}`);
