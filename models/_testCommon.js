@@ -2,7 +2,8 @@ const bcrypt = require("bcrypt");
 
 const db = require("../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../config");
-const {createToken} = require('../helpers/tokens')
+const {createToken} = require('../helpers/tokens');
+const User = require("./user.js");
 
 const testJobIds = []
 
@@ -44,6 +45,12 @@ async function commonBeforeAll() {
                ('Data Scientist', 110000, null, 'c1')
         RETURNING id`);
   testJobIds.splice(0, 0, ...jobsRes.rows.map(j => j.id))
+
+  // add test job application
+  await db.query(`
+        INSERT INTO applications (username, job_id)
+        VALUES ('u1', ${testJobIds[0]})
+        RETURNING username, job_id AS "jobId"`);
 }
 
 async function commonBeforeEach() {

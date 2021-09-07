@@ -118,7 +118,7 @@ class User {
   /** Given a username, return data about user.
    *
    * Returns { username, first_name, last_name, is_admin, jobs }
-   *   where jobs is { id, title, company_handle, company_name, state }
+   *   where jobs is a list of ids attached to jobs (just an empty list if no jobs)
    *
    * Throws NotFoundError if user not found.
    **/
@@ -138,6 +138,11 @@ class User {
     const user = userRes.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+
+    const applicationRes = await db.query(
+      `SELECT job_id AS "jobId" FROM applications WHERE username = $1`
+    , [username])
+    user.jobs = applicationRes.rows.map(j => j.jobId)
 
     return user;
   }
@@ -203,6 +208,26 @@ class User {
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+  /** Job application method */
+  static async apply(username, jobId) {
+    const userCheck = await db.query(`
+      SELECT username FROM users WHERE username = $1
+    `, [username])
+    if (!userCheck.rows.length) throw new BadRequestError("Invalid username")
+
+    const jobCheck = await db.query(`
+      SELECT id FROM jobs WHERE id = $1
+    `, [jobId])
+    if (!jobCheck.rows.length) throw new BadRequestError("Invalid job id")
+    
+    let result = await db.query(
+      `INSERT INTO applications (username, job_id)
+      VALUES ($1, $2)
+      RETURNING username, job_id AS "jobId"
+      `, [username, jobId]
+    )
   }
 }
 

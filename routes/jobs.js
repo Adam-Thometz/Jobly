@@ -10,6 +10,7 @@ const { ensureAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 const jobNewSchema = require("../schemas/jobNew.json");
 const jobUpdateSchema = require("../schemas/jobUpdate.json");
+const jobSearchSchema = require("../schemas/jobSearch.json");
 
 const router = new express.Router();
 
@@ -53,6 +54,12 @@ router.get("/", async function (req, res, next) {
   const q = req.query
   if (!!q.minSalary) q.minSalary = +q.minSalary
   try {
+    const validator = jsonschema.validate(req.body, jobSearchSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+    
     const jobs = await Job.findAll(q)
     return res.json({jobs: jobs})
   } catch (err) {
